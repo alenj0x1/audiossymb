@@ -153,10 +153,16 @@ function loop(now) {
   let f = audio.update(dt, settings.sensitivity);
   const realAudio = f.active;
   if (!realAudio) {
-    // Sin captura, si Spotify nos dio el análisis de la canción los visuales van
-    // sincronizados con ella de verdad; si no, queda el pulso ambiental.
     const sp = state.spotify;
-    if (state.metaSource === 'spotify' && sp.timeline && sp.current?.isPlaying) {
+    if (audio.hasLiveSource) {
+      // Hay una fuente enchufada pero ahora no llega señal: la música está pausada, o la
+      // captura vino muda. La escena se queda en calma con los valores reales, que decaen a
+      // cero. Sustituirla por el pulso sintético hacía creer que reaccionaba al sonido
+      // cuando no lo hacía: seguía moviéndose incluso con la música pausada.
+      void sp;
+    } else if (state.metaSource === 'spotify' && sp.timeline && sp.current?.isPlaying) {
+      // Sin captura, si Spotify dio el análisis de la canción los visuales van sincronizados
+      // con ella de verdad.
       f = sp.timeline.sample(spotifyProgressMs() / 1000, dt, settings.sensitivity, true);
     } else {
       f = ambientFeatures(f, dt);
@@ -339,10 +345,26 @@ async function useCapture() {
   catch (e) { if (e.name !== 'NotAllowedError') toast(e.message, { error: true }); return; }
   afterLiveSource('Audio del sistema', 'Capturando lo que suena en tu equipo');
 }
+// Un stream conectado pero mudo es el fallo más habitual de la captura: el grafo funciona y
+// el analizador lee ceros, así que antes parecía simplemente que el visualizador no reaccionaba.
+async function checkSignal() {
+  const kind = audio.kind;
+  if (await audio.probeSignal()) return;
+  if (audio.kind !== kind) return;          // la fuente cambió mientras medíamos
+  if (kind === 'capture') {
+    toast('La captura no recibe sonido. Si la música está sonando, vuelve a compartir y marca «Compartir audio del sistema» (o «Compartir audio de la pestaña»).', { error: true, ms: 10000 });
+  } else if (kind === 'loopback') {
+    toast('La entrada de mezcla llega en silencio. Súbele el nivel en el panel de sonido de Windows o prueba con otra entrada.', { error: true, ms: 9000 });
+  } else if (kind === 'mic') {
+    toast('El micrófono no capta nada. Comprueba que no esté silenciado.', { error: true, ms: 8000 });
+  }
+}
+
 function afterLiveSource(title, subtitle, { announce = true } = {}) {
   audio.onEnded = (why) => { if (why === 'stream') toast('La captura de audio terminó.'); };
   hud.setHasSource(true);
   hud.closeDrawer();
+  checkSignal();
   if (state.metaSource === 'spotify') {
     if (announce) toast('Spotify + sonido real: los visuales ahora siguen la música de verdad.', { ms: 3200 });
     return; // conservamos título, portada y vibra de Spotify

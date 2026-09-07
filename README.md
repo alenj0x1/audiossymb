@@ -47,6 +47,7 @@ de audio y todo el render ocurren en tu máquina.
 - [La vibra se queda](#la-vibra-se-queda)
 - [Arquitectura](#arquitectura)
 - [Requisitos](#requisitos)
+- [Contribuir](#contribuir)
 - [Licencia](#licencia)
 
 ## Arranque
@@ -76,9 +77,14 @@ npm run preview   # sirve dist/ para comprobarlo
 | **Spotify** | Cuenta Premium + Client ID | Metadatos, portada y controles ([ver detalle](#que-los-visuales-sigan-el-sonido-real-de-spotify)) |
 | **Pista generada** | Enlace inferior de la pantalla inicial | Completo (sintetizada en el navegador) |
 
-Sin audio analizable la escena no se queda quieta: se sintetiza un juego completo de
-características —espectro, onda, pulso a 96 BPM y un acorde que rota— para que ninguna capa se
-quede plana esperando datos que no van a llegar.
+Cuando **no hay ninguna fuente enchufada** —o hay Spotify sin captura ni análisis— la escena
+no se queda quieta: se sintetiza un juego completo de características (espectro, onda, pulso a
+96 BPM y un acorde que rota) para que ninguna capa se quede plana esperando datos que no van a
+llegar.
+
+Con una fuente en vivo eso no ocurre: si la música se pausa o la captura llega muda, la escena
+descansa sobre los valores reales, que decaen a cero. Una pausa parece una pausa, y si la
+captura no recibe sonido la app lo dice en lugar de disimularlo con un patrón sintético.
 
 ## Qué hace
 
@@ -329,6 +335,13 @@ src/
 - **Node 18+** para el servidor de desarrollo.
 - Cuenta **Spotify Premium** solo si quieres la integración con Spotify. Todo lo demás funciona
   sin cuenta.
+
+## Contribuir
+
+El código, sus comentarios y este README están en español; el historial de git, las issues y
+los pull requests van en inglés, siguiendo [Conventional
+Commits](https://www.conventionalcommits.org/en/v1.0.0/). La convención completa está en
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Licencia
 

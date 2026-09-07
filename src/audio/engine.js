@@ -28,7 +28,11 @@ export class AudioEngine {
 
   ensureContext() {
     if (!this.ctx) {
-      this.ctx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
+      this.ctx = new (window.AudioContext || window.webkitAudioContext)({
+        latencyHint: 'interactive',
+        // Si una captura anterior exigió otro ritmo de muestreo, se respeta.
+        ...(this._forcedRate ? { sampleRate: this._forcedRate } : {}),
+      });
 
       // punto de entrada común: todas las fuentes se conectan aquí
       this.input = this.ctx.createGain();
@@ -63,6 +67,42 @@ export class AudioEngine {
     }
     if (this.ctx.state === 'suspended') this.ctx.resume();
     return this.ctx;
+  }
+
+  // Chrome entrega SILENCIO por un MediaStreamAudioSourceNode cuando el ritmo de muestreo
+  // del stream no coincide con el del AudioContext. No hay error, no hay aviso: el grafo
+  // funciona y el analizador lee ceros. Es la causa habitual de "estoy capturando audio pero
+  // el visualizador no reacciona", así que el contexto se reconstruye al ritmo del stream.
+  _rebuildContext(sampleRate) {
+    const vol = this.volume;
+    try { this.ctx?.close(); } catch {}
+    this.ctx = null;
+    this.analyser = null;
+    this.features = null;
+    this.audioEl = null;      // el MediaElementSource muere con el contexto
+    this.elSource = null;
+    this._forcedRate = sampleRate;
+    this.volume = vol;
+    this.ensureContext();
+  }
+
+  // ¿Hay realmente una fuente de audio enchufada? Distinto de que suene: sirve para no
+  // sustituir una fuente en silencio por un pulso sintético, que engaña al usuario.
+  get hasLiveSource() {
+    return this.kind !== 'none' && this.kind !== 'spotify';
+  }
+
+  // Comprueba que del stream sale señal de verdad. Devuelve false si sigue en silencio.
+  async probeSignal(ms = 2600) {
+    if (!this.analyser) return true;
+    const buf = new Float32Array(this.analyser.fftSize);
+    const t0 = performance.now();
+    while (performance.now() - t0 < ms) {
+      this.analyser.getFloatTimeDomainData(buf);
+      for (let i = 0; i < buf.length; i += 8) if (Math.abs(buf[i]) > 0.002) return true;
+      await new Promise(r => setTimeout(r, 120));
+    }
+    return false;
   }
 
   _disconnectCurrent() {
@@ -164,6 +204,9 @@ export class AudioEngine {
 
   _attachStream(stream, kind) {
     this._disconnectCurrent();
+    const track = stream.getAudioTracks()[0];
+    const rate = track?.getSettings?.().sampleRate;
+    if (rate && this.ctx && Math.abs(rate - this.ctx.sampleRate) > 1) this._rebuildContext(rate);
     this.master.gain.value = 0; // no reenviamos el micro/captura a los altavoces: evitamos eco
     this.stream = stream;
     this.streamSource = this.ctx.createMediaStreamSource(stream);

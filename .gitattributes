@@ -1,0 +1,15 @@
+* text=auto eol=lf
+
+# los shaders van embebidos en JS, pero por si se extraen algún día
+*.glsl text
+*.vert text
+*.frag text
+
+# binarios: sin conversión de fin de línea ni diff textual
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary

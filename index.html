@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#06060c" />
+    <title>audiossymb · visualizador musical</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='%23ff4fd8'/><circle cx='50' cy='50' r='22' fill='%2306060c'/></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body class="no-source">
+    <!-- Iconos -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+      <defs>
+        <symbol id="i-mark" viewBox="0 0 32 32"><circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="16" cy="16" r="6" fill="currentColor"/><path d="M4 16h4M24 16h4M16 4v4M16 24v4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+        <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4m0 0-4 4m4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+        <symbol id="i-spotify" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="currentColor"/><path d="M7 9.6c3.6-1 7.4-.6 10.3 1.1M7.6 12.5c3-.8 6-.4 8.5 1M8.2 15.2c2.3-.6 4.5-.3 6.5.7" fill="none" stroke="#06060c" stroke-width="1.7" stroke-linecap="round"/></symbol>
+        <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 20h8M12 16.5V20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M8 12l2-3 2 4 2-5 2 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+        <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4M9 21h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+        <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13a1 1 0 0 0 1.5.87l11-6.5a1 1 0 0 0 0-1.74l-11-6.5A1 1 0 0 0 8 5.5z" fill="currentColor"/></symbol>
+        <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="5" width="4.5" height="14" rx="1.6" fill="currentColor"/><rect x="13.5" y="5" width="4.5" height="14" rx="1.6" fill="currentColor"/></symbol>
+        <symbol id="i-prev" viewBox="0 0 24 24"><path d="M7 6v12M18 6.8v10.4a1 1 0 0 1-1.55.83L9 12.9a1 1 0 0 1 0-1.66l7.45-4.9A1 1 0 0 1 18 6.8z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+        <symbol id="i-next" viewBox="0 0 24 24"><path d="M17 6v12M6 6.8v10.4a1 1 0 0 0 1.55.83L15 12.9a1 1 0 0 0 0-1.66l-7.45-4.9A1 1 0 0 0 6 6.8z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+        <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3zM19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15zM5 14l.7 1.6L7.3 16.3l-1.6.7L5 18.6l-.7-1.6-1.6-.7 1.6-.7L5 14z" fill="currentColor"/></symbol>
+        <symbol id="i-swap" viewBox="0 0 24 24"><path d="M4 8h13m0 0-3.5-3.5M17 8l-3.5 3.5M20 16H7m0 0 3.5 3.5M7 16l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+        <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="16" cy="7" r="2.2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="17" r="2.2" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+        <symbol id="i-expand" viewBox="0 0 24 24"><path d="M4 9V5a1 1 0 0 1 1-1h4M20 9V5a1 1 0 0 0-1-1h-4M4 15v4a1 1 0 0 0 1 1h4M20 15v4a1 1 0 0 1-1 1h-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+        <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
+        <symbol id="i-volume" viewBox="0 0 24 24"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+        <symbol id="i-wave" viewBox="0 0 24 24"><path d="M3 12h2l2-6 3 12 3-9 2 5 2-2h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+        <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18c1.4 0 2-.9 2-1.8 0-.6-.3-1-.6-1.4-.3-.4-.5-.8-.5-1.3 0-1 .8-1.5 1.8-1.5H16a5 5 0 0 0 5-5c0-3.9-4-7-9-7z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="7.5" cy="12" r="1.3" fill="currentColor"/><circle cx="9.5" cy="8" r="1.3" fill="currentColor"/><circle cx="14" cy="7" r="1.3" fill="currentColor"/><circle cx="17" cy="10.5" r="1.3" fill="currentColor"/></symbol>
+        <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 15V6a2 2 0 0 1 2-2h9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+        <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 11v5M12 8v.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+        <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 4 2.5 20h19L12 4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 10v4.5M12 17.5v.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+        <!-- iconos de capas -->
+        <symbol id="i-hero" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8.4 8.2c1.6-1.4 4.2-1.7 6.2-.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".85"/><path d="M6.6 14.4c1 1.6 3 2.6 5 2.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity=".5"/><circle cx="9.6" cy="9.8" r="1.5" fill="currentColor" opacity=".9"/></symbol>
+        <symbol id="i-nebula" viewBox="0 0 24 24"><path d="M4 15c-1.5-3.5.4-8 4.5-9.4C13 4 18 6 19.6 10c1.5 3.9-.9 8.4-5.4 9.3C10 20.2 5.6 18.6 4 15z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M7.5 13.5c.8-2.2 3-3.6 5.4-3.2" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity=".7"/><circle cx="14.5" cy="14.5" r="1.6" fill="currentColor" opacity=".8"/></symbol>
+        <symbol id="i-aurora" viewBox="0 0 24 24"><path d="M4 20c0-6 1.8-11 4-11s2.2 5 2.2 11M10.5 20c0-7 2-13 4.2-13s2.3 6 2.3 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M2.5 20h19" stroke="currentColor" stroke-width="1.4" opacity=".5" stroke-linecap="round"/></symbol>
+        <symbol id="i-liquid" viewBox="0 0 24 24"><circle cx="9.5" cy="10" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="16" cy="15" r="3.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12.6 12.6c.7.6 1.3 1 2.2 1.3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity=".6"/></symbol>
+        <symbol id="i-flow" viewBox="0 0 24 24"><path d="M3 8c3.5-3 6.5 3 10 0s4.5 1 8-1M3 13c3.5-3 6.5 3 10 0s4.5 1 8-1M3 18c3.5-3 6.5 3 10 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+        <symbol id="i-rings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".75"/><circle cx="12" cy="12" r="2" fill="currentColor"/></symbol>
+        <symbol id="i-ribbon" viewBox="0 0 24 24"><path d="M2.5 15c4-8 7-8 9.5 0s5.5 8 9.5 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+        <symbol id="i-tunnel" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="7" y="7" width="10" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".7"/><rect x="10.5" y="10.5" width="3" height="3" rx="1" fill="currentColor"/></symbol>
+        <symbol id="i-terrain" viewBox="0 0 24 24"><path d="M2 17c3-1 4-5 6.5-5s3 3 5 3 3.5-4 6.5-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M2 20.5h20M2 13.5c3-1 4-5 6.5-5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity=".55"/></symbol>
+        <symbol id="i-orbs" viewBox="0 0 24 24"><circle cx="8" cy="9" r="4" fill="currentColor" opacity=".55"/><circle cx="16" cy="14" r="5" fill="currentColor" opacity=".35"/><circle cx="16.5" cy="7" r="2" fill="currentColor" opacity=".8"/></symbol>
+        <symbol id="i-shapes" viewBox="0 0 24 24"><path d="M12 3l8 14H4L12 3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="17" cy="7" r="3" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".7"/></symbol>
+        <symbol id="i-particles" viewBox="0 0 24 24"><circle cx="6" cy="7" r="1.5" fill="currentColor"/><circle cx="12" cy="4.5" r="1.1" fill="currentColor" opacity=".8"/><circle cx="18" cy="8" r="1.6" fill="currentColor"/><circle cx="8.5" cy="14" r="1.2" fill="currentColor" opacity=".8"/><circle cx="15" cy="16" r="1.7" fill="currentColor"/><circle cx="11" cy="10" r="1" fill="currentColor" opacity=".6"/><circle cx="19" cy="17" r="1" fill="currentColor" opacity=".6"/><circle cx="4.5" cy="18" r="1.2" fill="currentColor" opacity=".7"/></symbol>
+        <symbol id="i-tune" viewBox="0 0 24 24"><path d="M6 20V10M6 6.5V4M12 20v-6M12 10.5V4M18 20v-3M18 13.5V4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="6" cy="8" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="15.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+        <symbol id="i-keyboard" viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M6 10h.01M9.5 10h.01M13 10h.01M16.5 10h.01M6 13.5h.01M8 16h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M9.5 13.5h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+      </defs>
+    </svg>
+
+    <canvas id="stage"></canvas>
+    <div id="edge" aria-hidden="true"><i class="e-top"></i><i class="e-bottom"></i><i class="e-left"></i><i class="e-right"></i></div>
+    <div id="vignette" aria-hidden="true"></div>
+    <div id="scrim-top" aria-hidden="true"></div>
+    <div id="scrim-bottom" aria-hidden="true"></div>
+
+    <!-- ===== Pantalla de inicio ===== -->
+    <section id="welcome" class="overlay">
+      <div class="welcome">
+        <div class="aura" aria-hidden="true"></div>
+        <div class="welcome-head">
+          <span class="mark"><svg><use href="#i-mark"/></svg></span>
+          <span class="eyebrow">Visualizador musical inmersivo</span>
+          <span class="head-spacer"></span>
+          <button class="ghost-btn small" id="btn-welcome-settings"><svg><use href="#i-settings"/></svg>Ajustes</button>
+        </div>
+
+        <h1 class="logo"><span>audio</span>ssymb</h1>
+        <p class="tagline">Cada canción genera su propio universo: luz, color y forma que nacen del sonido y llenan la pantalla entera.</p>
+
+        <div class="source-grid">
+          <button class="source-card" id="btn-file" style="--accent: var(--c0)">
+            <span class="card-icon"><svg><use href="#i-upload"/></svg></span>
+            <span class="card-body"><strong>Subir canción</strong><small>MP3, WAV, FLAC, OGG, M4A… o arrástrala aquí</small></span>
+            <span class="card-arrow"><svg><use href="#i-play"/></svg></span>
+          </button>
+          <button class="source-card" id="btn-spotify" style="--accent: #1ed760">
+            <span class="card-icon"><svg><use href="#i-spotify"/></svg></span>
+            <span class="card-body"><strong>Conectar Spotify <em class="tag">Premium</em></strong><small>Refleja lo que escuchas, con la paleta de cada portada</small></span>
+            <span class="card-arrow"><svg><use href="#i-play"/></svg></span>
+          </button>
+          <button class="source-card" id="btn-capture" style="--accent: var(--c1)">
+            <span class="card-icon"><svg><use href="#i-monitor"/></svg></span>
+            <span class="card-body"><strong>Audio del sistema</strong><small>Usa la mezcla de salida si existe; si no, comparte la pantalla</small></span>
+            <span class="card-arrow"><svg><use href="#i-play"/></svg></span>
+          </button>
+          <button class="source-card" id="btn-mic" style="--accent: var(--c2)">
+            <span class="card-icon"><svg><use href="#i-mic"/></svg></span>
+            <span class="card-body"><strong>Micrófono</strong><small>Música en vivo, parlantes, lo que sea</small></span>
+            <span class="card-arrow"><svg><use href="#i-play"/></svg></span>
+          </button>
+        </div>
+
+        <div class="welcome-foot">
+          <button class="ghost-btn" id="btn-demo"><svg><use href="#i-play"/></svg>Probar con una pista generada</button>
+          <div class="kbd-hints">
+            <span><kbd>Espacio</kbd> play</span><span><kbd>R</kbd> vibra</span><span><kbd>F</kbd> pantalla</span><span><kbd>H</kbd> interfaz</span>
+          </div>
+        </div>
+      </div>
+      <input type="file" id="file-input" accept="audio/*,.flac,.m4a,.ogg,.opus,.aac" hidden />
+    </section>
+
+    <!-- ===== Barra superior ===== -->
+    <header id="hud-top" class="hud">
+      <div class="hud-left">
+        <div class="pill brand">
+          <svg class="brand-mark"><use href="#i-mark"/></svg>
+          <span class="brand-name">audiossymb</span>
+        </div>
+        <button class="pill vibe-pill" id="btn-vibe" data-tip="Ver vibra actual · V">
+          <span class="swatches" id="swatches"><i></i><i></i><i></i><i></i><i></i></span>
+          <span class="vibe-name" id="vibe-name">—</span>
+          <span class="sep"></span>
+          <span class="bpm mono" id="bpm">— <small>BPM</small></span>
+        </button>
+      </div>
+      <div class="hud-right">
+        <button class="pill cta" id="btn-capture-cta" hidden><svg><use href="#i-wave"/></svg><span>Capturar el sonido</span></button>
+        <div class="pill source-badge" id="source-badge"><i class="dot"></i><span id="source-label">Sin fuente</span></div>
+        <div class="pill icon-group">
+          <button class="icon-btn" id="btn-reroll" data-tip="Nueva vibra · R"><svg><use href="#i-sparkle"/></svg></button>
+          <button class="icon-btn" id="btn-source" data-tip="Cambiar fuente"><svg><use href="#i-swap"/></svg></button>
+          <button class="icon-btn" id="btn-settings" data-tip="Ajustes"><svg><use href="#i-settings"/></svg></button>
+          <button class="icon-btn" id="btn-fullscreen" data-tip="Pantalla completa · F"><svg><use href="#i-expand"/></svg></button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ===== Reproductor ===== -->
+    <footer id="hud-bottom" class="hud">
+      <div class="player">
+        <canvas class="player-viz" id="player-viz" width="880" height="120" aria-hidden="true"></canvas>
+        <div class="player-inner">
+          <div class="art-wrap" id="art-wrap" role="button" tabindex="0" aria-label="Ampliar la portada" data-tip="Ampliar la portada">
+            <div class="art-glow" id="art-glow"></div>
+            <div class="art" id="art"><div class="art-fallback"><svg><use href="#i-wave"/></svg></div></div>
+            <span class="art-zoom"><svg><use href="#i-expand"/></svg></span>
+          </div>
+          <div class="track">
+            <div class="title-row">
+              <span class="title" id="track-title">Sin reproducción</span>
+            </div>
+            <div class="artist" id="track-artist">Elige una fuente para empezar</div>
+            <div class="scrub" id="progress">
+              <div class="scrub-track"><div class="bar" id="progress-bar"><i class="knob"></i></div></div>
+              <div class="times mono"><span id="time-cur">0:00</span><span id="time-dur">0:00</span></div>
+            </div>
+          </div>
+          <div class="controls">
+            <button class="icon-btn" id="btn-prev" data-tip="Anterior"><svg><use href="#i-prev"/></svg></button>
+            <button class="icon-btn play" id="btn-play" data-tip="Reproducir / pausar · Espacio"><svg class="ic-play"><use href="#i-play"/></svg><svg class="ic-pause"><use href="#i-pause"/></svg></button>
+            <button class="icon-btn" id="btn-next" data-tip="Siguiente"><svg><use href="#i-next"/></svg></button>
+          </div>
+          <div class="side">
+            <canvas id="spectrum" width="128" height="44" data-tip="Espectro en vivo"></canvas>
+            <div class="volume" id="volume-wrap">
+              <svg><use href="#i-volume"/></svg>
+              <input type="range" id="volume" min="0" max="1" step="0.01" value="0.9" aria-label="Volumen" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- línea de progreso a todo lo ancho, pegada al borde inferior -->
+    <div id="beatline" aria-hidden="true"><i id="beatline-bar"></i></div>
+
+    <!-- ===== Panel lateral ===== -->
+    <aside id="drawer" class="drawer" hidden>
+      <div class="drawer-head">
+        <nav class="tabs" id="tabs">
+          <button data-tab="vibe" class="on"><svg><use href="#i-sparkle"/></svg><span>Vibra</span></button>
+          <button data-tab="spotify"><svg><use href="#i-spotify"/></svg><span>Spotify</span></button>
+          <button data-tab="visual"><svg><use href="#i-tune"/></svg><span>Visual</span></button>
+          <button data-tab="atajos"><svg><use href="#i-keyboard"/></svg><span>Atajos</span></button>
+          <i class="tab-ink"></i>
+        </nav>
+        <button class="icon-btn" id="btn-drawer-close" data-tip="Cerrar · Esc"><svg><use href="#i-close"/></svg></button>
+      </div>
+
+      <section class="panel" data-panel="vibe">
+        <div class="vibe-hero">
+          <span class="eyebrow">Vibra actual</span>
+          <h2 id="p-vibe-name">—</h2>
+          <p class="muted" id="p-vibe-meta">—</p>
+          <div class="palette-row" id="p-palette"></div>
+          <div class="btn-row">
+            <button class="btn primary" id="btn-reroll-2"><svg><use href="#i-sparkle"/></svg>Nueva vibra</button>
+            <button class="btn" id="btn-new-palette"><svg><use href="#i-palette"/></svg>Nueva paleta</button>
+          </div>
+        </div>
+
+        <h4>Capas <span class="count mono" id="layer-count">—</span></h4>
+        <div class="layer-list" id="layer-list"></div>
+
+        <h4>Análisis en vivo</h4>
+        <div class="stats">
+          <div class="stat"><span>Energía</span><div class="meter"><i id="st-energy"></i></div></div>
+          <div class="stat"><span>Graves</span><div class="meter"><i id="st-bass"></i></div></div>
+          <div class="stat"><span>Medios</span><div class="meter"><i id="st-mid"></i></div></div>
+          <div class="stat"><span>Agudos</span><div class="meter"><i id="st-treble"></i></div></div>
+          <div class="stat"><span>Brillo</span><div class="meter"><i id="st-centroid"></i></div></div>
+          <div class="stat"><span>Textura</span><div class="meter"><i id="st-flat"></i></div></div>
+        </div>
+
+        <div class="pan-row">
+          <span>L</span>
+          <div class="pan-track"><i id="st-pan"></i></div>
+          <span>R</span>
+        </div>
+
+        <h4>Armonía <span class="count mono" id="st-tonic">—</span></h4>
+        <canvas id="chroma" class="chroma" width="360" height="72" aria-label="Cromagrama en vivo"></canvas>
+
+        <div class="stat-grid">
+          <div class="stat-card"><small>Tempo</small><b class="mono" id="st-bpm">—</b></div>
+          <div class="stat-card"><small>Confianza</small><b class="mono" id="st-conf">—</b></div>
+          <div class="stat-card"><small>Esquema</small><b id="st-scheme">—</b></div>
+          <div class="stat-card"><small>Ánimo</small><b id="st-mood">—</b></div>
+        </div>
+      </section>
+
+      <section class="panel" data-panel="spotify" hidden>
+        <div class="status-card" id="spotify-card">
+          <svg class="sp-logo"><use href="#i-spotify"/></svg>
+          <div><b id="spotify-status">No conectado</b><small id="spotify-sub">Conecta tu cuenta Premium para reflejar lo que escuchas</small></div>
+          <button class="btn small" id="btn-spotify-logout" hidden>Desconectar</button>
+        </div>
+        <h4>Configuración</h4>
+        <p class="hint">Crea una app en <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener">developer.spotify.com/dashboard</a>, añade esta Redirect URI exacta y pega tu <b>Client ID</b>.</p>
+        <label class="field"><span>Redirect URI</span><div class="field-row"><code id="redirect-uri" class="mono"></code><button class="icon-btn small" id="btn-copy-redirect" data-tip="Copiar"><svg><use href="#i-copy"/></svg></button></div></label>
+        <label class="field"><span>Client ID</span><div class="field-row"><input type="text" id="client-id" placeholder="p. ej. 1a2b3c4d…" autocomplete="off" spellcheck="false" /><button class="btn small" id="btn-save-client">Guardar</button></div></label>
+        <div class="btn-row"><button class="btn primary" id="btn-spotify-connect"><svg><use href="#i-spotify"/></svg>Conectar Spotify</button></div>
+        <div class="row-card" id="spotify-device-row" hidden>
+          <div><b>Reproducir en esta pestaña</b><small>Web Playback SDK · esta pestaña aparece como dispositivo en Spotify</small></div>
+          <button class="btn small" id="btn-transfer">Transferir aquí</button>
+        </div>
+        <h4>Que los visuales sigan el sonido</h4>
+        <p class="hint">Con tu cuenta conectada se descarga el <b>análisis de audio</b> de cada canción (pulso, compases, secciones, alturas y timbre) y los visuales van sincronizados con ella <b>sin capturar nada</b>. La barra superior lo indica como <b>Spotify · sincronizado</b>.</p>
+        <p class="hint">Spotify retiró ese endpoint para las apps creadas después de noviembre de 2024. Si tu app es nueva verás un aviso, y entonces la única vía es capturar el sonido: pulsa el botón y elige <b>Toda la pantalla → Compartir audio del sistema</b> (o <b>Esta pestaña</b> si reproduces aquí).</p>
+        <div class="row-card">
+          <div><b>Salida del sistema como entrada</b><small id="loopback-state">Si tu equipo expone "Mezcla estéreo", el permiso se concede una vez y el audio real vuelve solo en cada visita, sin diálogos</small></div>
+          <button class="btn small" id="btn-loopback">Buscar</button>
+        </div>
+        <div class="btn-row"><button class="btn" id="btn-capture-2"><svg><use href="#i-wave"/></svg>Compartir pantalla con audio</button></div>
+      </section>
+
+      <section class="panel" data-panel="visual" hidden>
+        <h4>Calidad</h4>
+        <div class="segmented" id="quality">
+          <button data-value="low">Baja</button><button data-value="medium">Media</button><button data-value="high">Alta</button>
+        </div>
+
+        <h4>Sensibilidad <span class="count mono" id="sens-val">1.00</span></h4>
+        <input type="range" class="slider" id="sensitivity" min="0.4" max="2.2" step="0.05" value="1" />
+        <p class="hint tight">Cuánto reaccionan los visuales al volumen del audio.</p>
+
+        <h4>Intensidad visual <span class="count mono" id="intensity-val">1.00</span></h4>
+        <input type="range" class="slider" id="intensity" min="0.3" max="1.8" step="0.05" value="1" />
+        <p class="hint tight">Escala global de brillo, sacudidas y deformaciones.</p>
+
+        <h4>Estelas <span class="count mono" id="trails-val">100%</span></h4>
+        <input type="range" class="slider" id="trails" min="0" max="1.3" step="0.05" value="1" />
+
+        <h4>Grano <span class="count mono" id="grain-val">100%</span></h4>
+        <input type="range" class="slider" id="grain" min="0" max="1.6" step="0.05" value="1" />
+
+        <h4>Opciones</h4>
+        <label class="switch-row"><div><b>Caleidoscopio</b><small>Simetría radial cuando la vibra la propone</small></div><input type="checkbox" id="symmetry" class="switch" checked /></label>
+        <label class="switch-row"><div><b>Color desde la armonía</b><small>La tonalidad de la canción desplaza el matiz</small></div><input type="checkbox" id="chroma-color" class="switch" checked /></label>
+        <label class="switch-row"><div><b>Paleta desde la portada</b><small>Usar los colores del álbum en Spotify</small></div><input type="checkbox" id="album-palette" class="switch" checked /></label>
+        <label class="switch-row"><div><b>Efectos desde la portada</b><small>La imagen del álbum tiñe el fondo y colorea las partículas según su composición</small></div><input type="checkbox" id="artwork-fx" class="switch" checked /></label>
+        <label class="switch-row"><div><b>Ocultar interfaz en pantalla completa</b><small>Solo en pantalla completa, tras unos segundos sin mover el ratón</small></div><input type="checkbox" id="auto-hide" class="switch" checked /></label>
+        <label class="switch-row"><div><b>Tarjeta al cambiar de vibra</b><small>Anuncia el nombre de cada nuevo universo</small></div><input type="checkbox" id="vibe-cards" class="switch" checked /></label>
+        <label class="switch-row"><div><b>Vibra nueva en cada canción</b><small>Al cambiar de canción se genera otro universo. Desactivado, la escena que te guste se queda</small></div><input type="checkbox" id="vibe-per-track" class="switch" /></label>
+        <label class="switch-row"><div><b>Vibra nueva en cada sección</b><small>Reinventa la escena cuando la canción cambia de ánimo</small></div><input type="checkbox" id="auto-reroll" class="switch" /></label>
+      </section>
+
+      <section class="panel" data-panel="atajos" hidden>
+        <ul class="kbd-list">
+          <li><span>Reproducir / pausar</span><kbd>Espacio</kbd></li>
+          <li><span>Nueva vibra</span><kbd>R</kbd></li>
+          <li><span>Nueva paleta</span><kbd>P</kbd></li>
+          <li><span>Pantalla completa</span><kbd>F</kbd></li>
+          <li><span>Ocultar / mostrar interfaz</span><kbd>H</kbd></li>
+          <li><span>Panel de vibra</span><kbd>V</kbd></li>
+          <li><span>Ajustes visuales</span><kbd>G</kbd></li>
+          <li><span>Cerrar paneles</span><kbd>Esc</kbd></li>
+          <li><span>Soltar un archivo</span><kbd>arrastrar</kbd></li>
+        </ul>
+        <p class="hint">La interfaz se esconde sola tras unos segundos sin mover el ratón; muévelo o pulsa cualquier tecla para recuperarla.</p>
+      </section>
+    </aside>
+
+    <!-- Tarjeta de vibra nueva -->
+    <div id="vibe-card" aria-hidden="true">
+      <span class="vc-eyebrow">Nueva vibra</span>
+      <span class="vc-name" id="vc-name"></span>
+      <span class="vc-meta" id="vc-meta"></span>
+      <span class="vc-swatches" id="vc-swatches"></span>
+    </div>
+
+    <!-- Portada ampliada -->
+    <div id="art-view" hidden>
+      <div class="av-backdrop" id="av-backdrop"></div>
+      <div class="av-stage">
+        <div class="av-media" id="av-media">
+          <div class="av-glow" id="av-glow"></div>
+          <img id="av-img" alt="" />
+        </div>
+        <div class="av-caption" id="av-caption">
+          <b id="av-title"></b>
+          <span id="av-artist"></span>
+          <span id="av-album"></span>
+          <div class="av-palette" id="av-palette"></div>
+        </div>
+      </div>
+      <button class="icon-btn av-close" id="av-close" data-tip="Cerrar · Esc"><svg><use href="#i-close"/></svg></button>
+    </div>
+
+    <div id="toasts"></div>
+    <div id="drop-hint" hidden><div class="drop-card"><svg><use href="#i-upload"/></svg><b>Suelta la canción</b><small>MP3, WAV, FLAC, OGG, M4A</small></div></div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

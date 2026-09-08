@@ -18,14 +18,21 @@ export const KneeShader = {
     uniform sampler2D tDiffuse;
     uniform float uKnee;
     varying vec2 vUv;
+    // Half-float scene buffers can overflow on a specular highlight. NaN/Inf must
+    // never reach bloom: its repeated blur passes spread one bad pixel over the frame.
+    float finiteHDR(float v) {
+      if (!(v >= 0.0)) return 0.0; // Also catches NaN without GLSL-version extensions.
+      return min(v, 64.0);        // Includes +Inf; preserve a bright highlight, not black.
+    }
     void main() {
       vec4 t = texture2D(tDiffuse, vUv);
+      t.rgb = vec3(finiteHDR(t.r), finiteHDR(t.g), finiteHDR(t.b));
       // La compresión se aplica al canal más alto y el resto se escala en proporción:
       // así el matiz y la saturación sobreviven. Comprimir cada canal por separado
       // arrastraría todas las luces hacia el blanco y la imagen saldría lechosa.
       float peak = max(max(t.r, t.g), t.b);
       float scaled = peak / (1.0 + peak * uKnee);
-      gl_FragColor = vec4(t.rgb * (scaled / max(peak, 1e-4)), t.a);
+      gl_FragColor = vec4(t.rgb * (scaled / max(peak, 1e-4)), 1.0);
     }
   `,
 };

@@ -5,6 +5,7 @@ const cssVar = (name) => getComputedStyle(document.documentElement).getPropertyV
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
 
 export const LAYER_INFO = {
+  resonance: { name: 'Resonancia', desc: 'Impactos rítmicos y filamentos armónicos', icon: 'i-wave' },
   hero: { name: 'Escultura', desc: 'Protagonista de cristal, cromo o iridiscente', icon: 'i-hero' },
   nebula: { name: 'Nebulosa', desc: 'Lienzo volumétrico de fondo', icon: 'i-nebula' },
   aurora: { name: 'Auroras', desc: 'Cortinas de luz de lado a lado', icon: 'i-aurora' },
@@ -347,6 +348,14 @@ export class Hud {
       this._drawPlayerViz(f);
     }
     if ((this.statTick++ & 3) === 0) {
+      if (this.drawerOpen && this.activeTab === 'visual') {
+        const s = f.sync;
+        $('sync-mode').textContent = !s ? (f.active ? 'Análisis de pista' : 'Ambiental') : s.mode === 'sample-clock' ? 'Reloj de audio · 8 ms' : 'Análisis espectral';
+        $('sync-character').textContent = s?.character || (f.active ? 'Datos de Spotify' : 'Sin audio analizable');
+        for (const key of ['kick', 'snare', 'hat', 'melody', 'sustain', 'pluck']) {
+          $('sync-' + key).value = s?.audible ? clamp01(s.context[key] ?? f[key] ?? 0) : 0;
+        }
+      }
       const bpm = f.bpm && f.tempoConfidence > 0.2 ? f.bpm : null;
       this.el.bpm.innerHTML = `${bpm ?? '—'} <small>BPM</small>`;
       if (this.drawerOpen && this.activeTab === 'vibe') {

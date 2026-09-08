@@ -123,6 +123,7 @@ export class FeatureExtractor {
     this.sampleRate = sampleRate;
     this.binCount = analyser.frequencyBinCount;
     this.freqData = new Uint8Array(this.binCount);
+    this.dbData = new Float32Array(this.binCount);
     this.timeData = new Float32Array(analyser.fftSize);
     this.lin = new Float32Array(this.binCount);
 
@@ -141,8 +142,8 @@ export class FeatureExtractor {
 
     if (stereo) {
       this.stereoData = {
-        left: new Uint8Array(stereo.left.frequencyBinCount),
-        right: new Uint8Array(stereo.right.frequencyBinCount),
+        left: new Float32Array(stereo.left.fftSize),
+        right: new Float32Array(stereo.right.fftSize),
       };
     }
 
@@ -164,6 +165,7 @@ export class FeatureExtractor {
   }
 
   static logEdges(fmin, fmax, n, sr, fft) {
+    fmax = Math.min(fmax, sr * 0.48);
     const hzPerBin = sr / fft;
     const edges = new Int32Array(n + 1);
     for (let i = 0; i <= n; i++) {
@@ -204,6 +206,7 @@ export class FeatureExtractor {
     this.sectionEnergy = 0.3;
     this.tonic = 0;
     this.tonicStrength = 0;
+    this.harmonicity = 0;
     this._prevPhase = 0;
     this._lastSection = -1e9;
   }
@@ -233,26 +236,30 @@ export class FeatureExtractor {
 
   // Panorama estéreo: sólo disponible si el motor creó analizadores por canal.
   _stereoPan() {
-    if (!this.stereo) return { pan: 0, width: 0 };
+    if (!this.stereo) return { pan: 0, width: 0, rms: 0 };
     const { left, right } = this.stereo;
-    left.getByteFrequencyData(this.stereoData.left);
-    right.getByteFrequencyData(this.stereoData.right);
-    let l = 0, r = 0;
+    left.getFloatTimeDomainData(this.stereoData.left);
+    right.getFloatTimeDomainData(this.stereoData.right);
+    let l = 0, r = 0, side = 0;
     const n = this.stereoData.left.length;
-    for (let i = 2; i < n; i++) { l += this.stereoData.left[i]; r += this.stereoData.right[i]; }
-    l /= (n - 2) * 255; r /= (n - 2) * 255;
+    for (let i = 0; i < n; i++) {
+      const a = this.stereoData.left[i], b = this.stereoData.right[i];
+      l += a * a; r += b * b; side += (a - b) ** 2;
+    }
     const sum = l + r;
     return {
       pan: sum > 0.002 ? Math.max(-1, Math.min(1, (r - l) / sum)) : 0,
-      width: clamp01(Math.abs(r - l) * 4),
+      width: sum > 0.002 ? clamp01(side / (2 * sum)) : 0,
+      rms: Math.sqrt(sum / (2 * n)),
     };
   }
 
-  update(dt, sensitivity = 1, active = true) {
-    this.now += dt * 1000;
+  update(dt, sensitivity = 1, active = true, audioTime = null) {
+    this.now = audioTime === null ? this.now + dt * 1000 : audioTime * 1000;
     const now = this.now;
     const an = this.analyser;
     an.getByteFrequencyData(this.freqData);
+    an.getFloatFrequencyData(this.dbData);
     an.getFloatTimeDomainData(this.timeData);
 
     // magnitudes lineales (0..1) con una curva que realza detalles suaves
@@ -270,6 +277,8 @@ export class FeatureExtractor {
     const td = this.timeData, tdN = td.length;
     for (let i = 0; i < tdN; i++) { const s = td[i]; rms += s * s; const a = s < 0 ? -s : s; if (a > peak) peak = a; }
     rms = Math.sqrt(rms / tdN);
+    const stereo = this._stereoPan();
+    rms = Math.max(rms, stereo.rms);
     const step = tdN / WAVE_POINTS;
     const waveSm = 1 - Math.exp(-dt * 26);
     for (let i = 0; i < WAVE_POINTS; i++) {
@@ -302,10 +311,27 @@ export class FeatureExtractor {
     // cromagrama → tónica estimada (rota la paleta con la armonía)
     const chromaDecay = 1 - Math.exp(-dt * 2.2);
     this.chromaAcc.fill(0);
-    for (let i = 1; i < this.binCount; i++) {
-      const pc = this.chromaMap[i];
-      if (pc >= 0) this.chromaAcc[pc] += this.lin[i];
+    // Only prominent spectral peaks vote for pitch. Log-byte magnitudes used by the
+    // visual equalizer otherwise make broadband drums look like a twelve-note chord.
+    let tonalPower = 0, totalPower = 0;
+    const hzPerBin = this.sampleRate / an.fftSize;
+    for (let i = 2; i < this.binCount - 2; i++) {
+      const hz = i * hzPerBin;
+      if (hz < 140 || hz > 4200) continue;
+      const db = this.dbData[i];
+      const power = Math.pow(10, db / 10);
+      totalPower += power;
+      if (db < -75 || db <= this.dbData[i - 1] || db <= this.dbData[i + 1]) continue;
+      const prominence = db - (this.dbData[i - 2] + this.dbData[i + 2]) * 0.5;
+      if (prominence < 3) continue;
+      const left = this.dbData[i - 1], right = this.dbData[i + 1];
+      const shift = Math.max(-0.5, Math.min(0.5, 0.5 * (left - right) / (left - 2 * db + right || 1)));
+      const midi = 69 + 12 * Math.log2((i + shift) * hzPerBin / 440);
+      const pc = ((Math.round(midi) % 12) + 12) % 12;
+      this.chromaAcc[pc] += Math.sqrt(power);
+      tonalPower += power;
     }
+    this.harmonicity = lerp(this.harmonicity, clamp01(tonalPower / (totalPower + 1e-12) * 1.8), chromaDecay);
     let chromaMax = 1e-6, tonic = this.tonic;
     for (let c = 0; c < NUM_CHROMA; c++) if (this.chromaAcc[c] > chromaMax) { chromaMax = this.chromaAcc[c]; tonic = c; }
     let chromaSum = 0;
@@ -330,7 +356,7 @@ export class FeatureExtractor {
     const geo = Math.exp(sumLog / this.binCount);
     const flatness = clamp01(geo / (sum / this.binCount + 1e-6));
     const crest = clamp01(rms > 1e-5 ? (peak / rms - 1) / 6 : 0);
-    const { pan, width } = this._stereoPan();
+    const { pan, width } = stereo;
 
     const up = 1 - Math.exp(-dt * 24), down = 1 - Math.exp(-dt * 6.5);
     const follow = (key, target) => {
@@ -389,7 +415,7 @@ export class FeatureExtractor {
       this._lastSection = now;
     }
 
-    const isActive = active && this.silenceFrames < 90;
+    const isActive = active && !silent;
     return {
       active: isActive,
       bands: this.bandsSmooth, bandsPeak: this.bandsPeak, bandsSlow: this.bandsSlow, rawBands: this.bands,
@@ -404,6 +430,7 @@ export class FeatureExtractor {
       centroid: this.smooth.centroid, flux: this.smooth.flux, flatness: this.smooth.flatness, crest: this.smooth.crest,
       pan: this.smooth.pan, width: this.smooth.width,
       tonic: this.tonic, tonicStrength: this.tonicStrength,
+      harmonicity: this.harmonicity,
       sectionChange,
       mood: m,
     };

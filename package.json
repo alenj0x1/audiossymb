@@ -29,6 +29,7 @@
     "node": ">=18"
   },
   "scripts": {
+    "test": "node --test",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"

@@ -252,6 +252,19 @@
       </section>
 
       <section class="panel" data-panel="visual" hidden>
+        <div class="sync-card">
+          <div class="sync-heading"><span>Audio sync</span><b id="sync-mode">En reposo</b></div>
+          <p id="sync-character">Esperando música</p>
+          <div class="sync-meters">
+            <label>Bombo<meter id="sync-kick" min="0" max="1" value="0"></meter></label>
+            <label>Caja<meter id="sync-snare" min="0" max="1" value="0"></meter></label>
+            <label>Agudos<meter id="sync-hat" min="0" max="1" value="0"></meter></label>
+            <label>Armonía<meter id="sync-melody" min="0" max="1" value="0"></meter></label>
+            <label>Sostenido<meter id="sync-sustain" min="0" max="1" value="0"></meter></label>
+            <label>Punteo<meter id="sync-pluck" min="0" max="1" value="0"></meter></label>
+          </div>
+          <p class="hint tight">Los golpes generan impactos; la armonía dibuja filamentos. El carácter y el punteo son estimaciones del sonido, no identificación de instrumentos o géneros.</p>
+        </div>
         <h4>Calidad</h4>
         <div class="segmented" id="quality">
           <button data-value="low">Baja</button><button data-value="medium">Media</button><button data-value="high">Alta</button>

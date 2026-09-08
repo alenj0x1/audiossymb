@@ -18,13 +18,16 @@ void main() {
 `;
 
 const FRAG = /* glsl */ `
-precision mediump float;
+precision highp float;
 uniform vec3 uColor;
 uniform float uOpacity, uRim, uCore, uPower;
 varying vec3 vN;
 varying vec3 vV;
 void main() {
-  float f = pow(1.0 - abs(dot(normalize(vN), normalize(vV))), uPower);
+  // Normalized dot products can round above one. A negative base with fractional
+  // uPower produces NaN, poisoning the additive scene and then the bloom chain.
+  float facing = clamp(abs(dot(normalize(vN), normalize(vV))), 0.0, 1.0);
+  float f = pow(1.0 - facing, uPower);
   float a = (f * uRim + uCore) * uOpacity;
   if (a < 0.004) discard;
   gl_FragColor = vec4(uColor * (0.6 + f * 1.5), a);

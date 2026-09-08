@@ -54,7 +54,8 @@ void main() {
   // degradado radial: núcleo tenue, caída larguísima y un aro sutil en el borde
   float core = exp(-r * r * mix(11.0, 3.4, uSoftness));
   float halo = pow(max(1.0 - r, 0.0), 3.0) * 0.28;
-  float rim = exp(-pow((r - 0.82) * 8.0, 2.0)) * 0.14;
+  float rimDistance = (r - 0.82) * 8.0;
+  float rim = exp(-rimDistance * rimDistance) * 0.14;
   float a = (core + halo + rim) * vAlpha;
   if (a < 0.002) discard;
   gl_FragColor = vec4(vColor * a, a);

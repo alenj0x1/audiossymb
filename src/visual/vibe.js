@@ -20,7 +20,7 @@ const NOUN = [
 export const SHAPE_TYPES = ['ico', 'octa', 'tetra', 'torus', 'knot', 'ring', 'box', 'dodeca', 'sphere', 'capsule'];
 
 // Todas las capas disponibles. La nebulosa es el lienzo de fondo y siempre está.
-export const LAYER_KEYS = ['hero', 'nebula', 'aurora', 'liquid', 'flow', 'particles', 'rings', 'ribbons', 'tunnel', 'terrain', 'orbs', 'shapes'];
+export const LAYER_KEYS = ['hero', 'nebula', 'aurora', 'liquid', 'flow', 'particles', 'rings', 'ribbons', 'tunnel', 'terrain', 'orbs', 'shapes', 'resonance'];
 
 // Capas "de pantalla completa": son las más caras, así que nunca se activan todas juntas.
 const HEAVY = ['aurora', 'liquid'];
@@ -36,6 +36,7 @@ export function generateVibe(seedKey, mood = null, variant = 0) {
   const layers = {};
   LAYER_KEYS.forEach(k => (layers[k] = false));
   layers.nebula = true;
+  layers.resonance = true;
 
   // El protagonista manda: cuando está, el resto pasa a ser atmósfera y se recorta el
   // reparto. Once capas simultáneas competían entre sí; con jerarquía la escena respira.

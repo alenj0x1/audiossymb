@@ -1,0 +1,7 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Audio sync · laboratorio</title>
+<style>body{margin:0;background:#080b13;color:#e8e9f2;font:14px system-ui}canvas{position:fixed;inset:0}main{position:relative;margin:24px;padding:24px;border:1px solid #ffffff26;border-radius:20px;background:#0a0e1deb;max-width:460px}h1{font-size:22px}button,select{background:#202a44;color:white;border:1px solid #ffffff35;border-radius:8px;padding:10px;margin:4px}pre{white-space:pre-wrap;font:12px monospace;line-height:1.8}a{color:#7de6d9}</style></head>
+<body><canvas id="stage"></canvas><main><h1>Audio sync · laboratorio</h1><p>Archivo WAV generado localmente. Prueba el grafo de audio real, su reloj de salida y las mismas capas de la aplicación.</p>
+<button id="rhythm">Percusión · 120 BPM</button><button id="melody">Armonía sostenida</button><button id="stereo">Estéreo en contrafase</button><button id="pause">Pausar / continuar</button>
+<label>Render <select id="fps"><option value="60">60 FPS</option><option value="30">30 FPS</option><option value="15">15 FPS</option></select></label>
+<pre id="report">Esperando prueba</pre><a href="/">Volver al visualizador</a></main><script type="module" src="./audio-lab.js"></script></body></html>

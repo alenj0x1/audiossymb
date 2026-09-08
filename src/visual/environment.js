@@ -41,7 +41,8 @@ void main() {
   vec3 col = mix(uBottom, uTop, smoothstep(-0.35, 0.7, d.y));
 
   // línea de horizonte: la raya nítida que delata una superficie especular
-  col += uTop * 0.7 * exp(-pow(el / 0.055, 2.0));
+  float horizonDistance = el / 0.055;
+  col += uTop * 0.7 * exp(-horizonDistance * horizonDistance);
 
   // softbox principal, arriba a la izquierda: dibuja el reflejo grande y reconocible
   col += uKey * softbox(az, el, 0.7, 0.78, 0.6, 0.34, 0.07) * 3.6;

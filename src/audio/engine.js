@@ -5,6 +5,8 @@
 //                       └→ splitter → analyserL / analyserR   (panorama estéreo)
 import { FeatureExtractor } from './features.js';
 import { DemoTrack } from './demo.js';
+import { AudioSync } from './sync.js';
+import syncWorkletUrl from './sync-worklet.js?worker&url';
 
 export class AudioEngine {
   constructor() {
@@ -19,6 +21,8 @@ export class AudioEngine {
     this.features = null;
     this.onEnded = null;
     this.volume = 0.9;
+    this.sync = new AudioSync();
+    this.syncNode = null;
   }
 
   setVolume(v) {
@@ -64,9 +68,38 @@ export class AudioEngine {
       this.master.connect(this.ctx.destination);
 
       this.features = new FeatureExtractor(this.analyser, this.ctx.sampleRate, { left: this.analyserL, right: this.analyserR });
+      this._startSync(this.ctx);
     }
     if (this.ctx.state === 'suspended') this.ctx.resume();
     return this.ctx;
+  }
+
+  async _startSync(ctx) {
+    if (!ctx.audioWorklet) return;
+    try {
+      await ctx.audioWorklet.addModule(syncWorkletUrl);
+      if (this.ctx !== ctx) return;
+      const node = new AudioWorkletNode(ctx, 'audio-sync', { outputChannelCount: [1] });
+      node.port.onmessage = ({ data }) => this.sync.ingest(data);
+      node.onprocessorerror = () => { if (this.syncNode === node) { node.disconnect(); this.syncNode = null; } };
+      node.port.postMessage({ epoch: this.sync.epoch });
+      this.input.connect(node);
+      node.connect(ctx.destination); // Processor output is silence.
+      this.syncNode = node;
+    } catch (error) {
+      console.warn('Audio sync: usando análisis espectral de respaldo.', error);
+    }
+  }
+
+  _resetSync() {
+    this.sync.reset();
+    this.syncNode?.port.postMessage({ epoch: this.sync.epoch });
+  }
+
+  // Spotify can change its transport while the same capture stream stays connected.
+  resetAnalysis() {
+    this.features?.reset();
+    this._resetSync();
   }
 
   // Chrome entrega SILENCIO por un MediaStreamAudioSourceNode cuando el ritmo de muestreo
@@ -77,6 +110,8 @@ export class AudioEngine {
     const vol = this.volume;
     try { this.ctx?.close(); } catch {}
     this.ctx = null;
+    this.syncNode?.disconnect();
+    this.syncNode = null;
     this.analyser = null;
     this.features = null;
     this.audioEl = null;      // el MediaElementSource muere con el contexto
@@ -98,6 +133,7 @@ export class AudioEngine {
     const buf = new Float32Array(this.analyser.fftSize);
     const t0 = performance.now();
     while (performance.now() - t0 < ms) {
+      if (this.sync.latest?.rms > 0.002) return true;
       this.analyser.getFloatTimeDomainData(buf);
       for (let i = 0; i < buf.length; i += 8) if (Math.abs(buf[i]) > 0.002) return true;
       await new Promise(r => setTimeout(r, 120));
@@ -112,6 +148,7 @@ export class AudioEngine {
     if (this.stream) { this.stream.getTracks().forEach(t => t.stop()); this.stream = null; }
     if (this.demo) { this.demo.stop(); this.demo = null; }
     this.features?.reset();
+    this._resetSync();
   }
 
   // ---------- Archivo local ----------
@@ -241,6 +278,8 @@ export class AudioEngine {
     return this.kind === 'mic' || this.kind === 'capture' || this.kind === 'loopback';
   }
   togglePlay() {
+    this.features?.reset();
+    this._resetSync();
     if (this.kind === 'file' && this.audioEl) {
       this.audioEl.paused ? this.audioEl.play() : this.audioEl.pause();
     } else if (this.kind === 'demo' && this.demo) {
@@ -250,12 +289,22 @@ export class AudioEngine {
   get currentTime() { return this.kind === 'file' ? this.audioEl?.currentTime || 0 : 0; }
   get duration() { return this.kind === 'file' ? this.audioEl?.duration || 0 : 0; }
   seek(fraction) {
-    if (this.kind === 'file' && this.audioEl?.duration) this.audioEl.currentTime = fraction * this.audioEl.duration;
+    if (this.kind === 'file' && Number.isFinite(this.audioEl?.duration)) {
+      this.audioEl.currentTime = Math.max(0, Math.min(1, fraction)) * this.audioEl.duration;
+      this.features?.reset(); this._resetSync();
+    }
   }
 
   // Extrae las características del frame actual; si no hay fuente, devuelve un estado en reposo.
   update(dt, sensitivity = 1) {
     if (!this.features) return FeatureExtractor.idle();
-    return this.features.update(dt, sensitivity, this.kind !== 'none' && this.kind !== 'spotify');
+    const f = this.features.update(dt, sensitivity, this.isPlaying, this.ctx.currentTime);
+    // Playback follows the output device clock; external captures use their arrival clock.
+    const stamp = this.ctx.getOutputTimestamp?.();
+    const playback = this.kind === 'file' || this.kind === 'demo';
+    const now = playback && stamp?.contextTime > 0
+      ? Math.min(this.ctx.currentTime, stamp.contextTime + Math.max(0, performance.now() - stamp.performanceTime) / 1000)
+      : this.ctx.currentTime;
+    return this.sync.enrich(f, dt, now, !!this.syncNode && !!this.sync.latest);
   }
 }

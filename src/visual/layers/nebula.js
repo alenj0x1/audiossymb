@@ -134,12 +134,12 @@ void main() {
   if (uCaustics > 0.01) {
     // vetas de luz como reflejos en el agua: pocas, anchas y tenues (si son finas y
     // abundantes el fondo parece mármol, no luz)
-    float caus = pow(1.0 - abs(fbm(p * 0.8 + r * 1.1 + t * 1.2, 2.0)), 6.0);
+    float caus = pow(max(1.0 - abs(fbm(p * 0.8 + r * 1.1 + t * 1.2, 2.0)), 0.0), 6.0);
     col += uC2 * caus * uCaustics * (0.05 + uTreble * 0.18) * smoothstep(0.15, 0.7, rad);
   }
   float rays = snoise(vec2(ang * 3.0 + uSeed, t * 3.0)) * 0.5 + 0.5;
   rays *= snoise(vec2(ang * 6.0 - t * 2.0 + uSeed, uSeed * 0.5)) * 0.5 + 0.5;
-  col += uC2 * pow(rays, 2.6) * uRays * (0.04 + uTreble * 0.35) * smoothstep(0.05, 0.6, rad);
+  col += uC2 * pow(max(rays, 0.0), 2.6) * uRays * (0.04 + uTreble * 0.35) * smoothstep(0.05, 0.6, rad);
 
   // aro que se expande con cada golpe de caja
   col += uC1 * smoothstep(0.05, 0.0, abs(rad - (0.22 + uSnare * 0.6))) * uSnare * 0.22;

@@ -20,11 +20,13 @@ import { TunnelLayer } from './layers/tunnel.js';
 import { TerrainLayer } from './layers/terrain.js';
 import { OrbLayer } from './layers/orbs.js';
 import { ShapeLayer } from './layers/shapes.js';
+import { ResonanceLayer } from './layers/resonance.js';
 import { GradeShader, KneeShader } from './grade.js';
 import { Environment } from './environment.js';
 import { artworkTexture } from './artwork.js';
 import { PaletteBlender, paletteToCss, rotatePalette } from './palette.js';
 import { adaptVibeToMood } from './vibe.js';
+import { directMusic, MUSICAL_ROLES } from './director.js';
 
 const QUALITY = {
   low: { pixelRatio: 0.7, particles: 0.4, bloomScale: 0.35, liquid: 0.4, terrain: 0.5, hero: 0.5, samples: 0 },
@@ -128,6 +130,7 @@ export class Visualizer {
 
   // Cambia la personalidad completa (nueva canción o "nueva vibra")
   setVibe(vibe, immediate = false) {
+    vibe.layers.resonance ??= true;
     for (const l of this.layers) l.dispose();
     this.layers = [];
     this.layerMap = {};
@@ -150,6 +153,7 @@ export class Visualizer {
     add('orbs', new OrbLayer(this.scene, vibe, p, q.particles));
     add('shapes', new ShapeLayer(this.scene, vibe, p));
     add('aurora', new AuroraLayer(this.scene, vibe, p));
+    add('resonance', new ResonanceLayer(this.scene, vibe, p));
 
     this.blender.setTarget(vibe.palette, immediate ? 0.01 : 2.5);
     this.paletteAngle = 0;
@@ -309,10 +313,14 @@ export class Visualizer {
       if (now - this.lastEnvBuild > 3500) this._buildEnvironment(pal);
     }
 
-    // capas
-    for (const l of this.layers) if (l.root.visible) l.update(f, dt, t, live, this.camera);
-
+    // Harmonic passages soften the camera; percussive attacks retain definition.
+    if (f.sync) live.shake *= 1 - f.sync.context.tenderness * Math.min(1, dt * 2);
     this._updateCamera(f, dt, t);
+    // capas
+    const roles = directMusic(f);
+    for (const [name, l] of Object.entries(this.layerMap)) {
+      if (l.root.visible) l.update(roles[MUSICAL_ROLES[name]] || f, dt, t, live, this.camera);
+    }
 
     // post
     const post = vibe.post;

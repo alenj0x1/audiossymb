@@ -11,6 +11,7 @@ import * as auth from './spotify/auth.js';
 import * as api from './spotify/api.js';
 import { PlaybackPoller } from './spotify/api.js';
 import { WebPlayer } from './spotify/player.js';
+import { spotifyDiscontinuity } from './spotify/discontinuity.js';
 
 const $ = (id) => document.getElementById(id);
 const SETTINGS_KEY = 'sinestesia.settings';
@@ -207,8 +208,8 @@ function ambientFeatures(base, dt) {
   f.beatPhase = phase;
   f.beatIndex = beatIndex;
   f.barPhase = ((beatIndex % 4) + phase) / 4;
-  f.bpm = AMBIENT_BPM;
-  f.tempoConfidence = 0.45;
+  f.bpm = 0; // Ambient animation is not evidence of the song's tempo.
+  f.tempoConfidence = 0;
   // espectro: cada banda oscila a su propio ritmo, con más peso en los graves
   const n = f.bands.length;
   for (let i = 0; i < n; i++) {
@@ -429,6 +430,10 @@ function applySpotifyState(st) {
   const sp = state.spotify;
   if (st?.error) { toast(st.error, { error: true }); disconnectSpotify(); return; }
   if (!st.fromSdk && sp.current?.fromSdk && performance.now() - sp.stateAt < 1500) return;
+  if (state.metaSource === 'spotify' && spotifyDiscontinuity(sp.current, st, performance.now() - sp.stateAt)) {
+    audio.resetAnalysis();
+    sp.timeline?.reset();
+  }
   sp.current = st;
   sp.stateAt = performance.now();
   if (state.metaSource !== 'spotify') return;

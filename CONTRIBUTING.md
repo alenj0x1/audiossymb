@@ -1,7 +1,9 @@
 # Contributing
 
-The codebase, its comments and the README are written in Spanish. **Git history, issues and
-pull requests are written in English.** Code identifiers stay in English too.
+The main [README](README.md) is in English, with a [Spanish version](README.es.md).
+Keep both versions updated when documenting features. The interface and most code comments
+are in Spanish. **Git history, issues and pull requests are written in English.** Code
+identifiers stay in English too.
 
 ## Commit convention
 
@@ -122,7 +124,11 @@ docs/commit-convention
 npm run build
 ```
 
-There is no test suite yet. Visual changes are verified by running the app (`npm run dev`) and
+Run `npm test` for audio sync and Spotify transport regression tests. With the development
+server running, `/tests/audio-lab.html` and `/tests/render-safety.html` exercise synthetic
+audio and GPU render safety.
+
+Visual changes are also verified by running the app (`npm run dev`) and
 checking the browser console for shader compilation errors — three.js reports those as
 `THREE.WebGLProgram: Shader Error`, and a broken layer often renders as nothing at all rather
 than throwing.
